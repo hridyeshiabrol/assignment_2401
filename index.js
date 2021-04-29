@@ -8,36 +8,29 @@ var cors = require("cors");
 var path = require("path");
 const { response } = require("express");
 var app = express();
+app.use(cors());
+var PORT = process.env.PORT || 3004;
+app.get("/save", (req, res) => {
+  var obj = {
+    collegid: "",
+    name: "",
+    yearfounded: "",
+    city: "",
+    state: "",
+    country: "",
+    studentnumber: "",
+    courses: "",
+  };
+  collegeSchema
+    .create(obj)
+    .then((result) => {
+      res.send({ res: result });
+    })
+    .catch((err) => {
+      res.json({ errmsg: err });
+    });
+});
 
-const connection = async () => {
-  await mongo().then(async (mongoose) => {
-    try {
-      console.log("Connected to DB");
-      //fake data is entered manually
-      // const user= {
-      //     studentid:'416282763',
-      //     name:'Vinna',
-      //     yearofbatch:'2018',
-      //     collegid:'college10',
-      //     skills:'c++'
-      // }
-      // const college ={
-      //     collegid:'college101',
-      //     name:'IIT',
-      //     yearfounded:'1982',
-        //     city:'aizawl',
-        //     state:'mizoram',
-        //     country:'India',
-        //     studentnumber:'100',
-        //     courses:'me',
-        // }
-        // await new collegeSchema(college).save()
-      // await new userSchema(user).save()
-    } finally {
-      mongoose.connection.close();
-    }
-  });
-};
 app.get("/", async (req, res) => {
   res.sendFile(path.join(process.cwd(), "index.html"));
 });
@@ -48,8 +41,12 @@ app.get('/fetch', function(req, res) {
         res.json({errmsg:err});
     })
 });
-
-app.listen(3000, () => {
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, "react-app", "build")));
+  app.get("*", (req, resp) => {
+      resp.sendFile(path.join(__dirname, "react-app", "build", "index.html"));
+  })
+}
+app.listen(PORT, () => {
   console.log("http://localhost:3000");
 });
-connection();
